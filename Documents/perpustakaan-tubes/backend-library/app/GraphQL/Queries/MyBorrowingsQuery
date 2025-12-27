@@ -1,0 +1,15 @@
+namespace App\GraphQL\Queries;
+
+use App\Models\Borrowing;
+use Illuminate\Support\Facades\Auth;
+
+class MyBorrowingsQuery
+{
+    public function __invoke($_, array $args)
+    {
+        return Borrowing::with(['book.category','fine'])
+            ->where('user_id', Auth::id())
+            ->orderByDesc('id')
+            ->get();
+    }
+}

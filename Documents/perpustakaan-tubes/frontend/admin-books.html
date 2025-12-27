@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Admin Books</title></head>
+<body>
+  <h2>Admin Books (CRUD + Pagination)</h2>
+  <p><a href="index.html">Dashboard</a> | <a href="admin-book-create.html">+ Create</a></p>
+  <p id="msg"></p>
+
+  <input id="keyword" placeholder="search title/author/isbn">
+  <button id="searchBtn">Search</button>
+
+  <ul id="list"></ul>
+  <button id="prev">Prev</button>
+  <span id="page"></span>
+  <button id="next">Next</button>
+
+  <script type="module">
+    import { apiFetch } from "./js/api.js";
+    let page = 1;
+
+    async function load() {
+      try {
+        const keyword = document.getElementById("keyword").value.trim();
+        const qs = new URLSearchParams({ page: String(page) });
+        if (keyword) qs.set("keyword", keyword);
+
+        const res = await apiFetch(`/api/books?${qs.toString()}`);
+        const ul = document.getElementById("list");
+        ul.innerHTML = "";
+
+        res.data.data.forEach(b => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <b>${b.title}</b> (stock: ${b.stock}) - ${b.category?.name ?? "-"}
+            <a href="admin-book-detail.html?id=${b.id}">Detail</a>
+            <a href="admin-book-edit.html?id=${b.id}">Edit</a>
+            <button data-id="${b.id}">Delete</button>
+          `;
+          ul.appendChild(li);
+        });
+
+        document.getElementById("page").textContent = `Page ${page}`;
+
+        ul.querySelectorAll("button").forEach(btn => {
+          btn.onclick = async () => {
+            if (!confirm("Delete this book?")) return;
+            try {
+              await apiFetch(`/api/books/${btn.dataset.id}`, { method: "DELETE" });
+              document.getElementById("msg").textContent = "Deleted";
+              load();
+            } catch (e) {
+              document.getElementById("msg").textContent = e.message;
+            }
+          };
+        });
+      } catch (e) {
+        document.getElementById("msg").textContent = e.message;
+      }
+    }
+
+    document.getElementById("searchBtn").onclick = () => { page=1; load(); };
+    document.getElementById("prev").onclick = () => { if(page>1){page--; load();} };
+    document.getElementById("next").onclick = () => { page++; load(); };
+
+    load().catch(() => location.href="login.html");
+  </script>
+</body>
+</html>

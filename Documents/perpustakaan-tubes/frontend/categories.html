@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Categories</title></head>
+<body>
+  <h2>Categories (CRUD)</h2>
+  <p><a href="index.html">Dashboard</a></p>
+  <p id="msg"></p>
+
+  <h3>Create Category</h3>
+  <input id="name" placeholder="name">
+  <input id="desc" placeholder="description">
+  <button id="createBtn">Create</button>
+
+  <h3>List</h3>
+  <ul id="list"></ul>
+
+  <script type="module">
+    import { apiFetch } from "./js/api.js";
+
+    async function load() {
+      const ul = document.getElementById("list");
+      ul.innerHTML = "";
+      const res = await apiFetch("/api/categories");
+      res.data.forEach(c => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <b>${c.name}</b> - ${c.description ?? ""}
+          <a href="category-edit.html?id=${c.id}">Edit</a>
+          <button data-id="${c.id}">Delete</button>
+        `;
+        ul.appendChild(li);
+      });
+
+      ul.querySelectorAll("button").forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm("Delete this category?")) return;
+          try {
+            await apiFetch(`/api/categories/${btn.dataset.id}`, { method: "DELETE" });
+            document.getElementById("msg").textContent = "Deleted";
+            load();
+          } catch (e) {
+            document.getElementById("msg").textContent = e.message;
+          }
+        };
+      });
+    }
+
+    document.getElementById("createBtn").onclick = async () => {
+      try {
+        const name = document.getElementById("name").value.trim();
+        const description = document.getElementById("desc").value.trim();
+
+        // validasi frontend
+        if (!name) throw new Error("Name is required");
+
+        await apiFetch("/api/categories", {
+          method: "POST",
+          body: { name, description }
+        });
+        document.getElementById("msg").textContent = "Created";
+        document.getElementById("name").value = "";
+        document.getElementById("desc").value = "";
+        load();
+      } catch (e) {
+        document.getElementById("msg").textContent = e.message;
+      }
+    };
+
+    // Pastikan login
+    load().catch(() => location.href="login.html");
+  </script>
+</body>
+</html>

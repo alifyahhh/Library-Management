@@ -1,0 +1,72 @@
+type Category {
+  id: ID!
+  name: String!
+  description: String
+  books: [Book!]! @hasMany
+}
+
+type Book {
+  id: ID!
+  isbn: String
+  title: String!
+  author: String
+  publisher: String
+  publication_year: Int
+  stock: Int!
+  description: String
+  cover_image: String
+  category: Category @belongsTo
+}
+
+type Fine {
+  id: ID!
+  amount: Float!
+  status: String!
+  paid_at: DateTime
+}
+
+type Borrowing {
+  id: ID!
+  borrow_date: Date!
+  due_date: Date!
+  return_date: Date
+  status: String!
+  book: Book @belongsTo
+  fine: Fine @hasOne
+}
+
+input BookFilter {
+  keyword: String
+  category_id: ID
+}
+
+type Query {
+  # Query 1
+  books(filter: BookFilter): [Book!]!
+    @field(resolver: "App\\GraphQL\\Queries\\BooksQuery")
+
+  # Query 2
+  book(id: ID!): Book @find
+
+  # Query 3 (use case relasional)
+  myBorrowings: [Borrowing!]!
+    @field(resolver: "App\\GraphQL\\Queries\\MyBorrowingsQuery")
+    @guard(with: ["sanctum"])
+}
+
+type Mutation {
+  # Mutation 1
+  borrowBook(book_id: ID!): Borrowing!
+    @field(resolver: "App\\GraphQL\\Mutations\\BorrowBookMutation")
+    @guard(with: ["sanctum"])
+
+  # Mutation 2
+  returnBook(borrowing_id: ID!): Borrowing!
+    @field(resolver: "App\\GraphQL\\Mutations\\ReturnBookMutation")
+    @guard(with: ["sanctum"])
+
+  # Mutation tambahan
+  payFine(fine_id: ID!): Fine!
+    @field(resolver: "App\\GraphQL\\Mutations\\PayFineMutation")
+    @guard(with: ["sanctum"])
+}

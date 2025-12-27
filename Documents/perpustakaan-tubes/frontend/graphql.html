@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GraphQL Demo</title>
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+<div class="main">
+  <h2>GraphQL Demo</h2>
+  <button id="run">Run Query</button>
+  <pre id="result"></pre>
+</div>
+
+<script type="module">
+import { getToken } from './assets/js/config.js';
+
+document.getElementById('run').onclick = async () => {
+  const res = await fetch('http://127.0.0.1:8000/graphql', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${getToken()}`
+    },
+    body: JSON.stringify({
+      query: `
+        query {
+          books {
+            id
+            title
+            category { name }
+          }
+        }
+      `
+    })
+  });
+
+  document.getElementById('result').innerText =
+    JSON.stringify(await res.json(), null, 2);
+};
+</script>
+</body>
+</html>

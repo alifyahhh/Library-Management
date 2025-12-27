@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Book Detail</title></head>
+<body>
+  <h2>Book Detail</h2>
+  <p><a href="admin-books.html">Back</a></p>
+  <pre id="out"></pre>
+
+  <script type="module">
+    import { apiFetch } from "./js/api.js";
+    const id = new URLSearchParams(location.search).get("id");
+
+    async function load() {
+      const res = await apiFetch(`/api/books/${id}`);
+      document.getElementById("out").textContent = JSON.stringify(res.data, null, 2);
+    }
+
+    load().catch(() => location.href="login.html");
+  </script>
+</body>
+</html>

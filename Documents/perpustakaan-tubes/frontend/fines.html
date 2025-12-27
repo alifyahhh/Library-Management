@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fines - Digital Library</title>
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div class="container">
+  <div class="sidebar">
+    <h2>Library</h2>
+    <a href="dashboard.html">📊 Dashboard</a>
+    <a href="books.html">📚 Books</a>
+    <a href="borrowings.html">🔁 Borrowings</a>
+    <a href="fines.html">💰 Fines</a>
+    <a href="#" id="logoutBtn">🚪 Logout</a>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <h2>My Fines</h2>
+      <input id="search" placeholder="Search by title..." style="max-width:260px">
+    </div>
+
+    <div class="card">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th>Book</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Paid At</th>
+            <th style="width:140px">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="assets/js/fines.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+namespace App\GraphQL\Mutations;
+
+use App\Models\Borrowing;
+use App\Models\Fine;
+
+class ReturnBookMutation
+{
+    public function __invoke($_, array $args)
+    {
+        $borrowing = Borrowing::with('book')->findOrFail($args['borrowing_id']);
+        abort_if($borrowing->status === 'returned', 400, 'Already returned');
+
+        $borrowing->return_date = now()->toDateString();
+
+        if (now()->gt($borrowing->due_date)) {
+            $daysLate = now()->diffInDays($borrowing->due_date);
+            $amount = $daysLate * 2000;
+
+            $borrowing->status = 'overdue';
+            Fine::firstOrCreate(
+                ['borrowing_id' => $borrowing->id],
+                ['amount' => $amount, 'status' => 'unpaid']
+            );
+        } else {
+            $borrowing->status = 'returned';
+        }
+
+        $borrowing->save();
+        $borrowing->book()->increment('stock');
+
+        return $borrowing->load(['book.category','fine']);
+    }
+}

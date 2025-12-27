@@ -1,0 +1,16 @@
+namespace App\GraphQL\Mutations;
+
+use App\Models\Fine;
+
+class PayFineMutation
+{
+    public function __invoke($_, array $args)
+    {
+        $fine = Fine::findOrFail($args['fine_id']);
+        $fine->update([
+            'status' => 'paid',
+            'paid_at' => now(),
+        ]);
+        return $fine;
+    }
+}

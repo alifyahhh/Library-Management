@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Edit Category</title></head>
+<body>
+  <h2>Edit Category</h2>
+  <p><a href="categories.html">Back</a></p>
+  <p id="msg"></p>
+
+  <input id="name" placeholder="name">
+  <input id="desc" placeholder="description">
+  <button id="saveBtn">Save</button>
+
+  <script type="module">
+    import { apiFetch } from "./js/api.js";
+
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id");
+
+    async function load() {
+      const res = await apiFetch(`/api/categories/${id}`);
+      document.getElementById("name").value = res.data.name;
+      document.getElementById("desc").value = res.data.description ?? "";
+    }
+
+    document.getElementById("saveBtn").onclick = async () => {
+      try {
+        const name = document.getElementById("name").value.trim();
+        const description = document.getElementById("desc").value.trim();
+        if (!name) throw new Error("Name is required");
+
+        await apiFetch(`/api/categories/${id}`, {
+          method: "PUT",
+          body: { name, description }
+        });
+        document.getElementById("msg").textContent = "Updated";
+      } catch (e) {
+        document.getElementById("msg").textContent = e.message;
+      }
+    };
+
+    load().catch(() => location.href="login.html");
+  </script>
+</body>
+</html>

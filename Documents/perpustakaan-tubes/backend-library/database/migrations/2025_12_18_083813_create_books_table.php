@@ -10,22 +10,16 @@ return new class extends Migration
     {
         Schema::create('books', function (Blueprint $table) {
             $table->id();
-            $table->string('isbn')->unique();
+            $table->foreignId('category_id')->constrained()->cascadeOnDelete();
+            $table->string('isbn')->nullable();
             $table->string('title');
-            $table->string('author');
+            $table->string('author')->nullable();
             $table->string('publisher')->nullable();
-            $table->year('publication_year')->nullable();
-            $table->string('category')->nullable();
+            $table->unsignedSmallInteger('publication_year')->nullable();
+            $table->unsignedInteger('stock')->default(0);
             $table->text('description')->nullable();
-            $table->integer('stock')->default(0);
-            $table->integer('available_stock')->default(0);
             $table->string('cover_image')->nullable();
             $table->timestamps();
-            $table->softDeletes();
-
-            $table->index('title');
-            $table->index('author');
-            $table->index('category');
         });
     }
 

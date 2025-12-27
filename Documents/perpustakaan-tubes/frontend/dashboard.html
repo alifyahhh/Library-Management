@@ -1,0 +1,32 @@
+import { API_BASE, getToken, logout } from './config.js';
+
+if (!getToken()) logout();
+
+document.getElementById('logoutBtn').onclick = logout;
+
+const tbody = document.querySelector('#booksTable tbody');
+
+const res = await fetch(`${API_BASE}/books`, {
+  headers: { Authorization: `Bearer ${getToken()}` }
+});
+
+const json = await res.json();
+
+json.data.data.forEach(b => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${b.title}</td>
+    <td>${b.author ?? '-'}</td>
+    <td>${b.stock}</td>
+    <td><button>Borrow</button></td>
+  `;
+  tr.querySelector('button').onclick = async () => {
+    await fetch(`${API_BASE}/borrow/${b.id}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${getToken()}` }
+    });
+    alert('Borrowed!');
+    location.reload();
+  };
+  tbody.appendChild(tr);
+});
