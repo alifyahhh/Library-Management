@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Edit Book</title></head>
+<body>
+  <h2>Edit Book</h2>
+  <p><a href="admin-books.html">Back</a></p>
+  <p id="msg"></p>
+
+  <label>Category</label>
+  <select id="category"></select><br><br>
+
+  <input id="title" placeholder="title"><br>
+  <input id="author" placeholder="author"><br>
+  <input id="isbn" placeholder="isbn"><br>
+  <input id="stock" placeholder="stock" type="number"><br>
+  <button id="saveBtn">Save</button>
+
+  <script type="module">
+    import { apiFetch } from "./js/api.js";
+    const id = new URLSearchParams(location.search).get("id");
+
+    async function loadCategories() {
+      const res = await apiFetch("/api/categories");
+      const sel = document.getElementById("category");
+      sel.innerHTML = "";
+      res.data.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.id;
+        opt.textContent = c.name;
+        sel.appendChild(opt);
+      });
+    }
+
+    async function loadBook() {
+      const res = await apiFetch(`/api/books/${id}`);
+      const b = res.data;
+      document.getElementById("category").value = b.category_id ?? b.category?.id ?? "";
+      document.getElementById("title").value = b.title ?? "";
+      document.getElementById("author").value = b.author ?? "";
+      document.getElementById("isbn").value = b.isbn ?? "";
+      document.getElementById("stock").value = b.stock ?? 0;
+    }
+
+    document.getElementById("saveBtn").onclick = async () => {
+      try {
+        const category_id = Number(document.getElementById("category").value);
+        const title = document.getElementById("title").value.trim();
+        const author = document.getElementById("author").value.trim();
+        const isbn = document.getElementById("isbn").value.trim();
+        const stock = Number(document.getElementById("stock").value);
+
+        if (!title) throw new Error("Title is required");
+        if (Number.isNaN(stock) || stock < 0) throw new Error("Stock must be >= 0");
+
+        await apiFetch(`/api/books/${id}`, {
+          method: "PUT",
+          body: { category_id, title, author, isbn, stock }
+        });
+        document.getElementById("msg").textContent = "Updated";
+      } catch (e) {
+        document.getElementById("msg").textContent = e.message;
+      }
+    };
+
+    Promise.all([loadCategories(), loadBook()])
+      .catch(() => location.href="login.html");
+  </script>
+</body>
+</html>

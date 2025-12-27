@@ -1,0 +1,28 @@
+namespace App\GraphQL\Queries;
+
+use App\Models\Book;
+
+class BooksQuery
+{
+    public function __invoke($_, array $args)
+    {
+        $q = Book::with('category')->orderByDesc('id');
+
+        $filter = $args['filter'] ?? null;
+        if ($filter) {
+            if (!empty($filter['keyword'])) {
+                $kw = $filter['keyword'];
+                $q->where(function($w) use ($kw) {
+                    $w->where('title','like',"%$kw%")
+                      ->orWhere('author','like',"%$kw%")
+                      ->orWhere('isbn','like',"%$kw%");
+                });
+            }
+            if (!empty($filter['category_id'])) {
+                $q->where('category_id', $filter['category_id']);
+            }
+        }
+
+        return $q->get();
+    }
+}

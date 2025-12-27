@@ -1,82 +1,33 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\BookController;
-use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\BorrowingController;
+use App\Http\Controllers\Api\AuthApiController;
+use App\Http\Controllers\Api\CategoryApiController;
+use App\Http\Controllers\Api\BookApiController;
+use App\Http\Controllers\Api\BorrowingApiController;
+use App\Http\Controllers\Api\FineApiController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-*/
+// publik: list + detail buku (biar search jalan walau belum login)
+Route::get('/books', [BookApiController::class, 'index']);
+Route::get('/books/{book}', [BookApiController::class, 'show']);
 
-// Test route
-Route::get('/', function () {
-    return response()->json([
-        'success' => true,
-        'message' => 'API is working',
-        'version' => '1.0.0'
-    ]);
-});
+// auth
+Route::post('/auth/register', [AuthApiController::class, 'register']);
+Route::post('/auth/login', [AuthApiController::class, 'login']);
 
-// Tambahkan route GET untuk login page info
-Route::get('/login', function () {
-    return response()->json([
-        'success' => true,
-        'message' => 'API is working',
-        'version' => '1.0.0'
-    ]);
-});
-
-// Public routes (no authentication)
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-
-// Public book routes
-Route::get('/books', [BookController::class, 'index']);
-Route::get('/books/search', [BookController::class, 'search']);
-Route::get('/books/{id}', [BookController::class, 'show']);
-
-// Public category routes
-Route::get('/categories', [CategoryController::class, 'index']);
-
-// Protected routes (require authentication)
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/auth/me', [AuthApiController::class, 'me']);
+    Route::post('/auth/logout', [AuthApiController::class, 'logout']);
 
-    // Auth routes
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', function (Request $request) {
-        return response()->json([
-            'success' => true,
-            'data' => $request->user()
-        ]);
-    });
+    // librarian only sebaiknya (nanti bisa kita role-check)
+    Route::apiResource('categories', CategoryApiController::class);
+    Route::apiResource('books', BookApiController::class)->except(['index','show']);
 
-    // Borrowing routes
-    Route::get('/borrowings', [BorrowingController::class, 'index']);
-    Route::post('/borrowings', [BorrowingController::class, 'store']);
-    Route::get('/borrowings/{id}', [BorrowingController::class, 'show']);
-    Route::post('/borrowings/{id}/return', [BorrowingController::class, 'return']);
+    Route::get('/borrowings', [BorrowingApiController::class, 'index']);
+    Route::post('/borrow/{book}', [BorrowingApiController::class, 'borrow']);
+    Route::post('/return/{borrowing}', [BorrowingApiController::class, 'return']);
 
-    // Admin only routes - PERBAIKAN: gunakan middleware yang valid
-    Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-        Route::post('/books', [BookController::class, 'store']);
-        Route::put('/books/{id}', [BookController::class, 'update']);
-        Route::delete('/books/{id}', [BookController::class, 'destroy']);
-
-        Route::post('/categories', [CategoryController::class, 'store']);
-        Route::put('/categories/{id}', [CategoryController::class, 'update']);
-        Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
-    });
+    Route::get('/my-fines', [FineApiController::class, 'myFines']);
+    Route::post('/pay-fine/{fine}', [FineApiController::class, 'pay']);
 });
 
-// Fallback route untuk 404
-Route::fallback(function () {
-    return response()->json([
-        'success' => false,
-        'message' => 'Route not found'
-    ], 404);
-});

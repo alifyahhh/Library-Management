@@ -1,0 +1,30 @@
+let toastWrap = null;
+
+export function toast(message, type = 'info', title = 'Info', timeout = 2200) {
+  if (!toastWrap) {
+    toastWrap = document.createElement('div');
+    toastWrap.className = 'toast-wrap';
+    document.body.appendChild(toastWrap);
+  }
+
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `
+    <div class="title">${title}</div>
+    <div class="msg">${escapeHtml(message)}</div>
+  `;
+  toastWrap.appendChild(el);
+
+  requestAnimationFrame(() => el.classList.add('show'));
+
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 220);
+  }, timeout);
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, s => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[s]));
+}

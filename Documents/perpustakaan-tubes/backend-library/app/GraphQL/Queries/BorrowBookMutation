@@ -1,0 +1,26 @@
+namespace App\GraphQL\Mutations;
+
+use App\Models\Book;
+use App\Models\Borrowing;
+use Illuminate\Support\Facades\Auth;
+
+class BorrowBookMutation
+{
+    public function __invoke($_, array $args)
+    {
+        $book = Book::findOrFail($args['book_id']);
+        abort_if($book->stock < 1, 400, 'Stock empty');
+
+        $borrowing = Borrowing::create([
+            'user_id' => Auth::id(),
+            'book_id' => $book->id,
+            'borrow_date' => now()->toDateString(),
+            'due_date' => now()->addDays(7)->toDateString(),
+            'status' => 'borrowed',
+        ]);
+
+        $book->decrement('stock');
+
+        return $borrowing->load(['book.category','fine']);
+    }
+}
